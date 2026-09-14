@@ -5,16 +5,33 @@ package lighthouse
 import (
 	"bytes"
 	"fmt"
-	ag_binary "github.com/gagliardetto/binary"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 func encodeT(data interface{}, buf *bytes.Buffer) error {
-	if err := ag_binary.NewBorshEncoder(buf).Encode(data); err != nil {
+	encoder := ag_binary.NewEncoder(nil)
+	value, ok := data.(interface {
+		MarshalWithEncoder(*ag_binary.Encoder) error
+	})
+	if !ok {
+		return fmt.Errorf("%T has no encoder", data)
+	}
+	if err := value.MarshalWithEncoder(encoder); err != nil {
 		return fmt.Errorf("unable to encode instruction: %w", err)
 	}
-	return nil
+	if err := encoder.Err(); err != nil {
+		return err
+	}
+	_, err := buf.Write(encoder.Bytes())
+	return err
 }
 
 func decodeT(dst interface{}, data []byte) error {
-	return ag_binary.NewBorshDecoder(data).Decode(dst)
+	value, ok := dst.(interface {
+		UnmarshalWithDecoder(*ag_binary.Decoder) error
+	})
+	if !ok {
+		return fmt.Errorf("%T has no decoder", dst)
+	}
+	return value.UnmarshalWithDecoder(ag_binary.NewDecoder(data))
 }

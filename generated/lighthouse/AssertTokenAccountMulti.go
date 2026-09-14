@@ -4,9 +4,9 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
+	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 	ag_treeout "github.com/gagliardetto/treeout"
 )
 
@@ -43,7 +43,7 @@ func (inst *AssertTokenAccountMulti) SetAssertions(assertions TokenAccountAssert
 // SetTargetAccountAccount sets the "targetAccount" account.
 // Target account to be asserted
 func (inst *AssertTokenAccountMulti) SetTargetAccountAccount(targetAccount ag_solanago.PublicKey) *AssertTokenAccountMulti {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(targetAccount)
+	inst.AccountMetaSlice[0] = targetAccount.Meta()
 	return inst
 }
 
@@ -54,7 +54,7 @@ func (inst *AssertTokenAccountMulti) GetTargetAccountAccount() *ag_solanago.Acco
 }
 
 func (inst AssertTokenAccountMulti) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
+	return &Instruction{BaseVariant: BaseVariant{
 		Impl:   inst,
 		TypeID: Instruction_AssertTokenAccountMulti,
 	}}
@@ -112,54 +112,23 @@ func (inst *AssertTokenAccountMulti) EncodeToTree(parent ag_treeout.Branches) {
 		})
 }
 
-func (obj AssertTokenAccountMulti) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	err = encoder.WriteUint8(uint8(*obj.LogLevel))
-	if err != nil {
+func (obj AssertTokenAccountMulti) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if err := obj.Assertions.MarshalWithEncoder(encoder); err != nil {
 		return err
 	}
-
-	err = encoder.WriteUint8(uint8(len(obj.Assertions)))
-	if err != nil {
-		return err
-	}
-
-	// Serialize `Assertions` param:
-	for _, at := range obj.Assertions {
-		err := at.MarshalWithEncoder(encoder)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return encoder.Err()
 }
-func (obj AssertTokenAccountMulti) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	{
-		_, _ = decoder.ReadUint8()
-	}
-
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
+func (obj *AssertTokenAccountMulti) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	if err := obj.Assertions.UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-
-	assertCount, err := decoder.ReadUint8()
-	if err != nil {
-		return err
-	}
-
-	// Deserialize `Assertions`:
-	for i := uint8(0); i < assertCount; i++ {
-		var assert TokenAccountAssertion
-
-		if err := assert.UnmarshalWithDecoder(decoder); err != nil {
-			return err
-		}
-		obj.Assertions = append(obj.Assertions, &assert)
-	}
-
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertTokenAccountMultiInstruction declares a new AssertTokenAccountMulti instruction with the provided parameters and accounts.
@@ -173,4 +142,13 @@ func NewAssertTokenAccountMultiInstruction(
 		SetLogLevel(logLevel).
 		SetAssertions(assertions).
 		SetTargetAccountAccount(targetAccount)
+}
+
+func (inst AssertTokenAccountMulti) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertTokenAccountMulti) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

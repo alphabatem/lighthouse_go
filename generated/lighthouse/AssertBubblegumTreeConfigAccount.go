@@ -4,9 +4,9 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
+	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 	ag_treeout "github.com/gagliardetto/treeout"
 )
 
@@ -43,7 +43,7 @@ func (inst *AssertBubblegumTreeConfigAccount) SetAssertion(assertion BubblegumTr
 // SetTargetAccountAccount sets the "targetAccount" account.
 // Target mpl-bubblegum tree config account to be asserted
 func (inst *AssertBubblegumTreeConfigAccount) SetTargetAccountAccount(targetAccount ag_solanago.PublicKey) *AssertBubblegumTreeConfigAccount {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(targetAccount)
+	inst.AccountMetaSlice[0] = targetAccount.Meta()
 	return inst
 }
 
@@ -54,7 +54,7 @@ func (inst *AssertBubblegumTreeConfigAccount) GetTargetAccountAccount() *ag_sola
 }
 
 func (inst AssertBubblegumTreeConfigAccount) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
+	return &Instruction{BaseVariant: BaseVariant{
 		Impl:   inst,
 		TypeID: Instruction_AssertBubblegumTreeConfigAccount,
 	}}
@@ -112,31 +112,27 @@ func (inst *AssertBubblegumTreeConfigAccount) EncodeToTree(parent ag_treeout.Bra
 		})
 }
 
-func (obj AssertBubblegumTreeConfigAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `LogLevel` param:
-	err = encoder.Encode(obj.LogLevel)
-	if err != nil {
+func (obj AssertBubblegumTreeConfigAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if obj.Assertion == nil {
+		return errors.New("Assertion parameter is not set")
+	}
+	if err := (*obj.Assertion).MarshalWithEncoder(encoder); err != nil {
 		return err
 	}
-	// Serialize `Assertion` param:
-	err = encoder.Encode(obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
+	return encoder.Err()
 }
-func (obj *AssertBubblegumTreeConfigAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
+func (obj *AssertBubblegumTreeConfigAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	obj.Assertion = new(BubblegumTreeConfigAssertion)
+	if err := (*obj.Assertion).UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-	// Deserialize `Assertion`:
-	err = decoder.Decode(&obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertBubblegumTreeConfigAccountInstruction declares a new AssertBubblegumTreeConfigAccount instruction with the provided parameters and accounts.
@@ -150,4 +146,13 @@ func NewAssertBubblegumTreeConfigAccountInstruction(
 		SetLogLevel(logLevel).
 		SetAssertion(assertion).
 		SetTargetAccountAccount(targetAccount)
+}
+
+func (inst AssertBubblegumTreeConfigAccount) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertBubblegumTreeConfigAccount) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

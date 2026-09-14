@@ -4,9 +4,9 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
+	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 	ag_treeout "github.com/gagliardetto/treeout"
 )
 
@@ -43,7 +43,7 @@ func (inst *AssertStakeAccount) SetAssertion(assertion StakeAccountAssertion) *A
 // SetTargetAccountAccount sets the "targetAccount" account.
 // Target account to be asserted
 func (inst *AssertStakeAccount) SetTargetAccountAccount(targetAccount ag_solanago.PublicKey) *AssertStakeAccount {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(targetAccount)
+	inst.AccountMetaSlice[0] = targetAccount.Meta()
 	return inst
 }
 
@@ -54,7 +54,7 @@ func (inst *AssertStakeAccount) GetTargetAccountAccount() *ag_solanago.AccountMe
 }
 
 func (inst AssertStakeAccount) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
+	return &Instruction{BaseVariant: BaseVariant{
 		Impl:   inst,
 		TypeID: Instruction_AssertStakeAccount,
 	}}
@@ -112,31 +112,27 @@ func (inst *AssertStakeAccount) EncodeToTree(parent ag_treeout.Branches) {
 		})
 }
 
-func (obj AssertStakeAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `LogLevel` param:
-	err = encoder.Encode(obj.LogLevel)
-	if err != nil {
+func (obj AssertStakeAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if obj.Assertion == nil {
+		return errors.New("Assertion parameter is not set")
+	}
+	if err := (*obj.Assertion).MarshalWithEncoder(encoder); err != nil {
 		return err
 	}
-	// Serialize `Assertion` param:
-	err = encoder.Encode(obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
+	return encoder.Err()
 }
-func (obj *AssertStakeAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
+func (obj *AssertStakeAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	obj.Assertion = new(StakeAccountAssertion)
+	if err := (*obj.Assertion).UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-	// Deserialize `Assertion`:
-	err = decoder.Decode(&obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertStakeAccountInstruction declares a new AssertStakeAccount instruction with the provided parameters and accounts.
@@ -150,4 +146,13 @@ func NewAssertStakeAccountInstruction(
 		SetLogLevel(logLevel).
 		SetAssertion(assertion).
 		SetTargetAccountAccount(targetAccount)
+}
+
+func (inst AssertStakeAccount) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertStakeAccount) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

@@ -3,11 +3,9 @@
 package lighthouse
 
 import (
-	"encoding/binary"
-	"errors"
 	"fmt"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 type TestAccountV1 struct {
@@ -32,319 +30,9 @@ type TestAccountV1 struct {
 	Vec           []byte
 }
 
-func (obj TestAccountV1) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `U8` param:
-	err = encoder.Encode(obj.U8)
-	if err != nil {
-		return err
-	}
-	// Serialize `I8` param:
-	err = encoder.Encode(obj.I8)
-	if err != nil {
-		return err
-	}
-	// Serialize `U16` param:
-	err = encoder.Encode(obj.U16)
-	if err != nil {
-		return err
-	}
-	// Serialize `I16` param:
-	err = encoder.Encode(obj.I16)
-	if err != nil {
-		return err
-	}
-	// Serialize `U32` param:
-	err = encoder.Encode(obj.U32)
-	if err != nil {
-		return err
-	}
-	// Serialize `I32` param:
-	err = encoder.Encode(obj.I32)
-	if err != nil {
-		return err
-	}
-	// Serialize `U64` param:
-	err = encoder.Encode(obj.U64)
-	if err != nil {
-		return err
-	}
-	// Serialize `I64` param:
-	err = encoder.Encode(obj.I64)
-	if err != nil {
-		return err
-	}
-	// Serialize `U128` param:
-	err = encoder.Encode(obj.U128)
-	if err != nil {
-		return err
-	}
-	// Serialize `I128` param:
-	err = encoder.Encode(obj.I128)
-	if err != nil {
-		return err
-	}
-	// Serialize `Bytes` param:
-	err = encoder.Encode(obj.Bytes)
-	if err != nil {
-		return err
-	}
-	// Serialize `TrueField` param:
-	err = encoder.Encode(obj.TrueField)
-	if err != nil {
-		return err
-	}
-	// Serialize `FalseField` param:
-	err = encoder.Encode(obj.FalseField)
-	if err != nil {
-		return err
-	}
-	// Serialize `OptionU8` param (optional):
-	{
-		if obj.OptionU8 == nil {
-			err = encoder.WriteBool(false)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = encoder.WriteBool(true)
-			if err != nil {
-				return err
-			}
-			err = encoder.Encode(obj.OptionU8)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Serialize `OptionU8None` param (optional):
-	{
-		if obj.OptionU8None == nil {
-			err = encoder.WriteBool(false)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = encoder.WriteBool(true)
-			if err != nil {
-				return err
-			}
-			err = encoder.Encode(obj.OptionU8None)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Serialize `OptionU16` param (optional):
-	{
-		if obj.OptionU16 == nil {
-			err = encoder.WriteBool(false)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = encoder.WriteBool(true)
-			if err != nil {
-				return err
-			}
-			err = encoder.Encode(obj.OptionU16)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Serialize `OptionU16None` param (optional):
-	{
-		if obj.OptionU16None == nil {
-			err = encoder.WriteBool(false)
-			if err != nil {
-				return err
-			}
-		} else {
-			err = encoder.WriteBool(true)
-			if err != nil {
-				return err
-			}
-			err = encoder.Encode(obj.OptionU16None)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Serialize `Pubkey` param:
-	err = encoder.Encode(obj.Pubkey)
-	if err != nil {
-		return err
-	}
-	// Serialize `Vec` param:
-	err = encoder.Encode(obj.Vec)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (obj *TestAccountV1) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `U8`:
-	err = decoder.Decode(&obj.U8)
-	if err != nil {
-		return err
-	}
-	// Deserialize `I8`:
-	err = decoder.Decode(&obj.I8)
-	if err != nil {
-		return err
-	}
-	// Deserialize `U16`:
-	err = decoder.Decode(&obj.U16)
-	if err != nil {
-		return err
-	}
-	// Deserialize `I16`:
-	err = decoder.Decode(&obj.I16)
-	if err != nil {
-		return err
-	}
-	// Deserialize `U32`:
-	err = decoder.Decode(&obj.U32)
-	if err != nil {
-		return err
-	}
-	// Deserialize `I32`:
-	err = decoder.Decode(&obj.I32)
-	if err != nil {
-		return err
-	}
-	// Deserialize `U64`:
-	err = decoder.Decode(&obj.U64)
-	if err != nil {
-		return err
-	}
-	// Deserialize `I64`:
-	err = decoder.Decode(&obj.I64)
-	if err != nil {
-		return err
-	}
-	// Deserialize `U128`:
-	err = decoder.Decode(&obj.U128)
-	if err != nil {
-		return err
-	}
-	// Deserialize `I128`:
-	err = decoder.Decode(&obj.I128)
-	if err != nil {
-		return err
-	}
-	// Deserialize `Bytes`:
-	err = decoder.Decode(&obj.Bytes)
-	if err != nil {
-		return err
-	}
-	// Deserialize `TrueField`:
-	err = decoder.Decode(&obj.TrueField)
-	if err != nil {
-		return err
-	}
-	// Deserialize `FalseField`:
-	err = decoder.Decode(&obj.FalseField)
-	if err != nil {
-		return err
-	}
-	// Deserialize `OptionU8` (optional):
-	{
-		ok, err := decoder.ReadBool()
-		if err != nil {
-			return err
-		}
-		if ok {
-			err = decoder.Decode(&obj.OptionU8)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Deserialize `OptionU8None` (optional):
-	{
-		ok, err := decoder.ReadBool()
-		if err != nil {
-			return err
-		}
-		if ok {
-			err = decoder.Decode(&obj.OptionU8None)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Deserialize `OptionU16` (optional):
-	{
-		ok, err := decoder.ReadBool()
-		if err != nil {
-			return err
-		}
-		if ok {
-			err = decoder.Decode(&obj.OptionU16)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Deserialize `OptionU16None` (optional):
-	{
-		ok, err := decoder.ReadBool()
-		if err != nil {
-			return err
-		}
-		if ok {
-			err = decoder.Decode(&obj.OptionU16None)
-			if err != nil {
-				return err
-			}
-		}
-	}
-	// Deserialize `Pubkey`:
-	err = decoder.Decode(&obj.Pubkey)
-	if err != nil {
-		return err
-	}
-	// Deserialize `Vec`:
-	err = decoder.Decode(&obj.Vec)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 type AccountDataAssertion struct {
 	Offset    CompactU64
 	Assertion DataValueAssertion
-}
-
-func (obj AccountDataAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `Offset` param:
-	err = encoder.Encode(obj.Offset)
-	if err != nil {
-		return err
-	}
-	// Serialize `Assertion` param:
-	err = encoder.Encode(obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (obj *AccountDataAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `Offset`:
-	err = decoder.Decode(&obj.Offset)
-	if err != nil {
-		return err
-	}
-	// Deserialize `Assertion`:
-	err = decoder.Decode(&obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 type DataValueAssertion []byte
@@ -423,125 +111,6 @@ func (t *TokenAccountAssertion) TypeString() string {
 	return "Unknown"
 }
 
-func (t TokenAccountAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	err = encoder.WriteUint8(t.Type())
-	if err != nil {
-		return err
-	}
-
-	if t.Mint != nil {
-		_, err = encoder.Write(t.Mint.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-
-	if t.Owner != nil {
-		_, err = encoder.Write(t.Owner.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-	if t.Amount != nil {
-		err = encoder.WriteUint64(*t.Amount, binary.LittleEndian)
-		if err != nil {
-			return err
-		}
-	}
-	if t.Delegate != nil {
-		_, err = encoder.Write(t.Delegate.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-	if t.State != nil {
-		_, err = encoder.Write(*t.State)
-		if err != nil {
-			return err
-		}
-	}
-	if t.IsNative != nil {
-		err = encoder.WriteBool(*t.IsNative)
-		if err != nil {
-			return err
-		}
-	}
-	if t.DelegatedAmount != nil {
-		err = encoder.WriteUint64(*t.DelegatedAmount, binary.LittleEndian)
-		if err != nil {
-			return err
-		}
-	}
-	if t.CloseAuthority != nil {
-		_, err = encoder.Write(t.CloseAuthority.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-
-	err = encoder.WriteUint8(t.Operator)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (t TokenAccountAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	byt, err := decoder.ReadUint8()
-	if err != nil {
-		return err
-	}
-
-	switch byt {
-	case 0: //Mint
-		if err := decoder.Decode(&t.Mint); err != nil {
-			return err
-		}
-	case 1: //Owner
-		if err := decoder.Decode(&t.Owner); err != nil {
-			return err
-		}
-	case 2: //Amount
-		if err := decoder.Decode(&t.Amount); err != nil {
-			return err
-		}
-	case 3: //Delegate
-		opk, err := decoder.ReadByte()
-		if err != nil {
-			return err
-		}
-
-		if opk == 1 {
-			if err := decoder.Decode(&t.Delegate); err != nil {
-				return err
-			}
-		} else {
-			t.Delegate = &ag_solanago.PublicKey{}
-		}
-	case 4: //State
-		if err := decoder.Decode(&t.State); err != nil {
-			return err
-		}
-	case 5: //IsNative
-		if err := decoder.Decode(&t.IsNative); err != nil {
-			return err
-		}
-	case 6: //DelegatedAmount
-		if err := decoder.Decode(&t.DelegatedAmount); err != nil {
-			return err
-		}
-	case 7: //CloseAuthority
-		if err := decoder.Decode(&t.CloseAuthority); err != nil {
-			return err
-		}
-	default:
-		return errors.New(fmt.Sprintf("unknown assertation type (%v)", byt))
-	}
-
-	return decoder.Decode(&t.Operator)
-}
-
 type AccountInfoAssertions []*AccountInfoAssertion
 
 // Placeholders for assertions
@@ -585,105 +154,6 @@ func (t *AccountInfoAssertion) Type() uint8 {
 	return 99
 }
 
-func (t AccountInfoAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	err = encoder.WriteUint8(t.Type())
-	if err != nil {
-		return err
-	}
-
-	if t.Lamports != nil {
-		err = encoder.WriteUint64(*t.Lamports, binary.LittleEndian)
-		if err != nil {
-			return err
-		}
-	}
-	if t.DataLength != nil {
-		err = encoder.WriteUint64(*t.DataLength, binary.LittleEndian)
-		if err != nil {
-			return err
-		}
-	}
-	if t.Owner != nil {
-		_, err = encoder.Write(t.Owner.Bytes())
-		if err != nil {
-			return err
-		}
-	}
-	if t.RentEpoch != nil {
-		err = encoder.WriteUint64(*t.RentEpoch, binary.LittleEndian)
-		if err != nil {
-			return err
-		}
-	}
-	if t.IsSigner != nil {
-		err = encoder.WriteBool(*t.IsSigner)
-		if err != nil {
-			return err
-		}
-	}
-	if t.IsWritable != nil {
-		err = encoder.WriteBool(*t.IsWritable)
-		if err != nil {
-			return err
-		}
-	}
-	if t.Executable != nil {
-		err = encoder.WriteBool(*t.Executable)
-		if err != nil {
-			return err
-		}
-	}
-
-	err = encoder.WriteUint8(t.Operator)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (t AccountInfoAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	byt, err := decoder.ReadUint8()
-	if err != nil {
-		return err
-	}
-
-	switch byt {
-
-	case 0: //Lamports
-		if err := decoder.Decode(t.Lamports); err != nil {
-			return err
-		}
-	case 1: //DataLength
-		if err := decoder.Decode(t.DataLength); err != nil {
-			return err
-		}
-	case 2: //Owner
-		if err := decoder.Decode(t.Owner); err != nil {
-			return err
-		}
-	case 4: //RentEpoch
-		if err := decoder.Decode(t.RentEpoch); err != nil {
-			return err
-		}
-	case 5: //IsSigner
-		if err := decoder.Decode(t.IsSigner); err != nil {
-			return err
-		}
-	case 6: //IsWritable
-		if err := decoder.Decode(t.IsWritable); err != nil {
-			return err
-		}
-	case 7: //Executable
-		if err := decoder.Decode(t.Executable); err != nil {
-			return err
-		}
-	default:
-		return errors.New(fmt.Sprintf("unknown assertation type (%v)", byt))
-	}
-
-	return decoder.Decode(&t.Operator)
-}
-
 type SysvarClockAssertion Assertion
 type StakeAccountAssertions Assertion
 type AccountDeltaAssertion Assertion
@@ -699,4 +169,535 @@ type WriteType Assertion
 type Assertion struct {
 	Typ  uint8
 	Data []byte
+}
+
+func (obj TestAccountV1) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(uint8(obj.U8))
+	encoder.WriteUint8(uint8(obj.I8))
+	encoder.WriteUint16(uint16(obj.U16))
+	encoder.WriteUint16(uint16(obj.I16))
+	encoder.WriteUint32(uint32(obj.U32))
+	encoder.WriteUint32(uint32(obj.I32))
+	encoder.WriteUint64(uint64(obj.U64))
+	encoder.WriteInt64(int64(obj.I64))
+	if err := obj.U128.MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	if err := obj.I128.MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	encoder.WriteBytes(obj.Bytes[:])
+	encoder.WriteBool(bool(obj.TrueField))
+	encoder.WriteBool(bool(obj.FalseField))
+	encoder.WriteOption(obj.OptionU8 != nil)
+	if obj.OptionU8 != nil {
+		encoder.WriteUint8(uint8((*obj.OptionU8)))
+	}
+	encoder.WriteOption(obj.OptionU8None != nil)
+	if obj.OptionU8None != nil {
+		encoder.WriteUint8(uint8((*obj.OptionU8None)))
+	}
+	encoder.WriteOption(obj.OptionU16 != nil)
+	if obj.OptionU16 != nil {
+		encoder.WriteUint16(uint16((*obj.OptionU16)))
+	}
+	encoder.WriteOption(obj.OptionU16None != nil)
+	if obj.OptionU16None != nil {
+		encoder.WriteUint16(uint16((*obj.OptionU16None)))
+	}
+	encoder.WritePublicKey(ag_solanago.PublicKey(obj.Pubkey))
+	if err := writeByteSlice(encoder, obj.Vec); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *TestAccountV1) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.U8 = uint8(decoder.ReadUint8())
+	obj.I8 = int8(decoder.ReadUint8())
+	obj.U16 = uint16(decoder.ReadUint16())
+	obj.I16 = int16(decoder.ReadUint16())
+	obj.U32 = uint32(decoder.ReadUint32())
+	obj.I32 = int32(decoder.ReadUint32())
+	obj.U64 = uint64(decoder.ReadUint64())
+	obj.I64 = int64(decoder.ReadInt64())
+	if err := obj.U128.UnmarshalWithDecoder(decoder); err != nil {
+		return err
+	}
+	if err := obj.I128.UnmarshalWithDecoder(decoder); err != nil {
+		return err
+	}
+	copy(obj.Bytes[:], decoder.ReadBytes(32))
+	obj.TrueField = bool(decoder.ReadBool())
+	obj.FalseField = bool(decoder.ReadBool())
+	obj.OptionU8 = nil
+	if decoder.ReadOption() {
+		obj.OptionU8 = new(uint8)
+		(*obj.OptionU8) = uint8(decoder.ReadUint8())
+	}
+	obj.OptionU8None = nil
+	if decoder.ReadOption() {
+		obj.OptionU8None = new(uint8)
+		(*obj.OptionU8None) = uint8(decoder.ReadUint8())
+	}
+	obj.OptionU16 = nil
+	if decoder.ReadOption() {
+		obj.OptionU16 = new(uint16)
+		(*obj.OptionU16) = uint16(decoder.ReadUint16())
+	}
+	obj.OptionU16None = nil
+	if decoder.ReadOption() {
+		obj.OptionU16None = new(uint16)
+		(*obj.OptionU16None) = uint16(decoder.ReadUint16())
+	}
+	obj.Pubkey = ag_solanago.PublicKey(decoder.ReadPublicKey())
+	obj.Vec = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj AccountDataAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint64(uint64(obj.Offset))
+	if err := writeByteSlice(encoder, obj.Assertion); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *AccountDataAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Offset = CompactU64(decoder.ReadUint64())
+	obj.Assertion = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj Assertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *Assertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj SysvarClockAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *SysvarClockAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj StakeAccountAssertions) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *StakeAccountAssertions) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj AccountDeltaAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *AccountDeltaAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj BubblegumTreeConfigAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *BubblegumTreeConfigAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj MerkleTreeAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *MerkleTreeAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj MintAccountAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *MintAccountAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj MintAccountAssertions) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *MintAccountAssertions) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj StakeAccountAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *StakeAccountAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj UpgradeableLoaderStateAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *UpgradeableLoaderStateAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj UpgradeableLoaderStateAssertions) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *UpgradeableLoaderStateAssertions) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj WriteType) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	encoder.WriteUint8(obj.Typ)
+	if err := writeByteSlice(encoder, obj.Data); err != nil {
+		return err
+	}
+	return encoder.Err()
+}
+func (obj *WriteType) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.Typ = decoder.ReadUint8()
+	obj.Data = readByteSlice(decoder)
+	return decoder.Err()
+}
+
+func (obj TokenAccountAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	count := 0
+	if obj.Mint != nil {
+		count++
+	}
+	if obj.Owner != nil {
+		count++
+	}
+	if obj.Amount != nil {
+		count++
+	}
+	if obj.Delegate != nil {
+		count++
+	}
+	if obj.State != nil {
+		count++
+	}
+	if obj.IsNative != nil {
+		count++
+	}
+	if obj.DelegatedAmount != nil {
+		count++
+	}
+	if obj.CloseAuthority != nil {
+		count++
+	}
+	if count != 1 {
+		return fmt.Errorf("TokenAccountAssertion requires exactly one assertion value, got %d", count)
+	}
+	encoder.WriteUint8(obj.Type())
+	if obj.Mint != nil {
+		encoder.WritePublicKey(ag_solanago.PublicKey((*obj.Mint)))
+	}
+	if obj.Owner != nil {
+		encoder.WritePublicKey(ag_solanago.PublicKey((*obj.Owner)))
+	}
+	if obj.Amount != nil {
+		encoder.WriteUint64(uint64((*obj.Amount)))
+	}
+	if obj.Delegate != nil {
+		encoder.WritePublicKey(ag_solanago.PublicKey((*obj.Delegate)))
+	}
+	if obj.State != nil {
+		if len(*obj.State) != 1 {
+			return fmt.Errorf("State requires one byte")
+		}
+		encoder.WriteBytes(*obj.State)
+	}
+	if obj.IsNative != nil {
+		encoder.WriteBool(bool((*obj.IsNative)))
+	}
+	if obj.DelegatedAmount != nil {
+		encoder.WriteUint64(uint64((*obj.DelegatedAmount)))
+	}
+	if obj.CloseAuthority != nil {
+		encoder.WritePublicKey(ag_solanago.PublicKey((*obj.CloseAuthority)))
+	}
+	encoder.WriteUint8(obj.Operator)
+	return encoder.Err()
+}
+func (obj *TokenAccountAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	*obj = TokenAccountAssertion{}
+	tag := decoder.ReadUint8()
+	if err := decoder.Err(); err != nil {
+		return err
+	}
+	switch tag {
+	case 0:
+		obj.Mint = new(ag_solanago.PublicKey)
+		(*obj.Mint) = ag_solanago.PublicKey(decoder.ReadPublicKey())
+	case 1:
+		obj.Owner = new(ag_solanago.PublicKey)
+		(*obj.Owner) = ag_solanago.PublicKey(decoder.ReadPublicKey())
+	case 2:
+		obj.Amount = new(uint64)
+		(*obj.Amount) = uint64(decoder.ReadUint64())
+	case 3:
+		obj.Delegate = new(ag_solanago.PublicKey)
+		(*obj.Delegate) = ag_solanago.PublicKey(decoder.ReadPublicKey())
+	case 4:
+		value := decoder.ReadBytesCopy(1)
+		obj.State = &value
+	case 5:
+		obj.IsNative = new(bool)
+		(*obj.IsNative) = bool(decoder.ReadBool())
+	case 6:
+		obj.DelegatedAmount = new(uint64)
+		(*obj.DelegatedAmount) = uint64(decoder.ReadUint64())
+	case 7:
+		obj.CloseAuthority = new(ag_solanago.PublicKey)
+		(*obj.CloseAuthority) = ag_solanago.PublicKey(decoder.ReadPublicKey())
+	default:
+		return fmt.Errorf("unknown TokenAccountAssertion type %d", tag)
+	}
+	obj.Operator = decoder.ReadUint8()
+	return decoder.Err()
+}
+
+func (obj AccountInfoAssertion) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	count := 0
+	if obj.Lamports != nil {
+		count++
+	}
+	if obj.DataLength != nil {
+		count++
+	}
+	if obj.Owner != nil {
+		count++
+	}
+	if obj.RentEpoch != nil {
+		count++
+	}
+	if obj.IsSigner != nil {
+		count++
+	}
+	if obj.IsWritable != nil {
+		count++
+	}
+	if obj.Executable != nil {
+		count++
+	}
+	if count != 1 {
+		return fmt.Errorf("AccountInfoAssertion requires exactly one assertion value, got %d", count)
+	}
+	encoder.WriteUint8(obj.Type())
+	if obj.Lamports != nil {
+		encoder.WriteUint64(uint64((*obj.Lamports)))
+	}
+	if obj.DataLength != nil {
+		encoder.WriteUint64(uint64((*obj.DataLength)))
+	}
+	if obj.Owner != nil {
+		encoder.WritePublicKey(ag_solanago.PublicKey((*obj.Owner)))
+	}
+	if obj.RentEpoch != nil {
+		encoder.WriteUint64(uint64((*obj.RentEpoch)))
+	}
+	if obj.IsSigner != nil {
+		encoder.WriteBool(bool((*obj.IsSigner)))
+	}
+	if obj.IsWritable != nil {
+		encoder.WriteBool(bool((*obj.IsWritable)))
+	}
+	if obj.Executable != nil {
+		encoder.WriteBool(bool((*obj.Executable)))
+	}
+	encoder.WriteUint8(obj.Operator)
+	return encoder.Err()
+}
+func (obj *AccountInfoAssertion) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	*obj = AccountInfoAssertion{}
+	tag := decoder.ReadUint8()
+	if err := decoder.Err(); err != nil {
+		return err
+	}
+	switch tag {
+	case 0:
+		obj.Lamports = new(uint64)
+		(*obj.Lamports) = uint64(decoder.ReadUint64())
+	case 1:
+		obj.DataLength = new(uint64)
+		(*obj.DataLength) = uint64(decoder.ReadUint64())
+	case 2:
+		obj.Owner = new(ag_solanago.PublicKey)
+		(*obj.Owner) = ag_solanago.PublicKey(decoder.ReadPublicKey())
+	case 4:
+		obj.RentEpoch = new(uint64)
+		(*obj.RentEpoch) = uint64(decoder.ReadUint64())
+	case 5:
+		obj.IsSigner = new(bool)
+		(*obj.IsSigner) = bool(decoder.ReadBool())
+	case 6:
+		obj.IsWritable = new(bool)
+		(*obj.IsWritable) = bool(decoder.ReadBool())
+	case 7:
+		obj.Executable = new(bool)
+		(*obj.Executable) = bool(decoder.ReadBool())
+	default:
+		return fmt.Errorf("unknown AccountInfoAssertion type %d", tag)
+	}
+	obj.Operator = decoder.ReadUint8()
+	return decoder.Err()
+}
+
+func (obj AccountDataAssertions) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if uint64(len(obj)) > 4294967295 {
+		return fmt.Errorf("too many assertions: %d", len(obj))
+	}
+	encoder.WriteUint32(uint32(len(obj)))
+	for _, item := range obj {
+		if err := item.MarshalWithEncoder(encoder); err != nil {
+			return err
+		}
+	}
+	return encoder.Err()
+}
+func (obj *AccountDataAssertions) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	n := uint64(decoder.ReadUint32())
+	if err := decoder.Err(); err != nil {
+		return err
+	}
+	if n > uint64(decoder.Remaining()) {
+		return fmt.Errorf("assertion count exceeds remaining data")
+	}
+	*obj = make(AccountDataAssertions, int(n))
+	for i := range *obj {
+		if err := (*obj)[i].UnmarshalWithDecoder(decoder); err != nil {
+			return err
+		}
+	}
+	return decoder.Err()
+}
+
+func (obj TokenAccountAssertions) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if uint64(len(obj)) > 255 {
+		return fmt.Errorf("too many assertions: %d", len(obj))
+	}
+	encoder.WriteUint8(uint8(len(obj)))
+	for _, item := range obj {
+		if item == nil {
+			return fmt.Errorf("nil assertion")
+		}
+		if err := item.MarshalWithEncoder(encoder); err != nil {
+			return err
+		}
+	}
+	return encoder.Err()
+}
+func (obj *TokenAccountAssertions) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	n := uint64(decoder.ReadUint8())
+	if err := decoder.Err(); err != nil {
+		return err
+	}
+	if n > uint64(decoder.Remaining()) {
+		return fmt.Errorf("assertion count exceeds remaining data")
+	}
+	*obj = make(TokenAccountAssertions, int(n))
+	for i := range *obj {
+		(*obj)[i] = new(TokenAccountAssertion)
+		if err := (*obj)[i].UnmarshalWithDecoder(decoder); err != nil {
+			return err
+		}
+	}
+	return decoder.Err()
+}
+
+func (obj AccountInfoAssertions) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if uint64(len(obj)) > 255 {
+		return fmt.Errorf("too many assertions: %d", len(obj))
+	}
+	encoder.WriteUint8(uint8(len(obj)))
+	for _, item := range obj {
+		if item == nil {
+			return fmt.Errorf("nil assertion")
+		}
+		if err := item.MarshalWithEncoder(encoder); err != nil {
+			return err
+		}
+	}
+	return encoder.Err()
+}
+func (obj *AccountInfoAssertions) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	n := uint64(decoder.ReadUint8())
+	if err := decoder.Err(); err != nil {
+		return err
+	}
+	if n > uint64(decoder.Remaining()) {
+		return fmt.Errorf("assertion count exceeds remaining data")
+	}
+	*obj = make(AccountInfoAssertions, int(n))
+	for i := range *obj {
+		(*obj)[i] = new(AccountInfoAssertion)
+		if err := (*obj)[i].UnmarshalWithDecoder(decoder); err != nil {
+			return err
+		}
+	}
+	return decoder.Err()
 }

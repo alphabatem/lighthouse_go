@@ -1,34 +1,37 @@
 package lighthouse_go
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
 	"github.com/alphabatem/lighthouse_go/generated/lighthouse"
-	"github.com/alphabatem/solana-go/rpc_cached"
-	bin "github.com/gagliardetto/binary"
-	"github.com/gagliardetto/solana-go"
-	"github.com/gagliardetto/solana-go/rpc"
+	solana "github.com/fluxrpc/solana-go"
+	bin "github.com/fluxrpc/solana-go/binary"
+	"github.com/fluxrpc/solana-go/rpc"
 	"github.com/joho/godotenv"
-	"log"
 	"os"
 	"testing"
 )
 
-func init() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+func integrationRPC(t *testing.T, needsKeypair bool) *rpc.Client {
+	t.Helper()
+	if err := godotenv.Load(".env"); err != nil && !os.IsNotExist(err) {
+		t.Fatal(err)
 	}
+	if os.Getenv("RPC_URL") == "" {
+		t.Skip("set RPC_URL to run integration tests")
+	}
+	if needsKeypair && os.Getenv("TEST_KEYPAIR") == "" {
+		t.Skip("set TEST_KEYPAIR to run simulation tests")
+	}
+	return rpc.New(os.Getenv("RPC_URL"))
 }
 
 func TestLighthouseService_AssertTokenAccountInstruction_Decode(t *testing.T) {
 	sig := solana.MustSignatureFromBase58("2CJ8oLPbtYmjtcXMjn1u89QVX3EJWJDzjR1HQWw1nDSqQpHWuLQhbecDMSRXXg9bkSWFy8AmckE7Ue4RpjTddQtd")
 
-	c := rpc_cached.New(os.Getenv("RPC_URl"))
+	c := integrationRPC(t, false)
 
 	z := uint64(0)
-	txn, err := c.Raw().GetTransaction(context.TODO(), sig, &rpc.GetTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &z})
+	txn, err := c.GetTransactionWithOpts(context.TODO(), sig, &rpc.GetTransactionOpts{Commitment: rpc.CommitmentConfirmed, MaxSupportedTransactionVersion: &z})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,7 +46,7 @@ func TestLighthouseService_AssertTokenAccountInstruction_Decode(t *testing.T) {
 	pk := solana.PublicKeyFromBytes(tokenAtaAssertIx.Data[len(tokenAtaAssertIx.Data)-33 : len(tokenAtaAssertIx.Data)-1])
 
 	var dix lighthouse.AssertTokenAccountMulti
-	err = dix.UnmarshalWithDecoder(bin.NewBinDecoder(tokenAtaAssertIx.Data))
+	err = dix.UnmarshalWithDecoder(bin.NewDecoder(tokenAtaAssertIx.Data[1:]))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,9 +84,9 @@ func TestLighthouseService_AssertTokenAccountInstruction_Decode(t *testing.T) {
 }
 
 func TestLighthouseService_AssertTokenAccountAmountInstruction(t *testing.T) {
-	c := rpc_cached.New(os.Getenv("RPC_URL"))
+	c := integrationRPC(t, true)
 
-	hash, err := c.GetLatestBlockhash()
+	hash, err := c.GetLatestBlockhash(context.TODO(), rpc.CommitmentConfirmed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +122,7 @@ func TestLighthouseService_AssertTokenAccountAmountInstruction(t *testing.T) {
 
 	txn.Signatures = []solana.Signature{solana.Signature{}}
 
-	sim, err := c.Raw().SimulateTransactionWithOpts(context.TODO(), txn, &rpc.SimulateTransactionOpts{
+	sim, err := c.SimulateTransactionWithOpts(context.TODO(), txn, &rpc.SimulateTransactionOpts{
 		SigVerify:  false,
 		Commitment: rpc.CommitmentProcessed,
 	})
@@ -136,9 +139,9 @@ func TestLighthouseService_AssertTokenAccountAmountInstruction(t *testing.T) {
 }
 
 func TestLighthouseService_AssertAccountInfoInstruction(t *testing.T) {
-	c := rpc_cached.New(os.Getenv("RPC_URL"))
+	c := integrationRPC(t, true)
 
-	hash, err := c.GetLatestBlockhash()
+	hash, err := c.GetLatestBlockhash(context.TODO(), rpc.CommitmentConfirmed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +156,7 @@ func TestLighthouseService_AssertAccountInfoInstruction(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	accInfo, err := c.GetAccountInfo(kp.PublicKey(), true)
+	accInfo, err := c.GetAccountInfo(context.TODO(), kp.PublicKey())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -191,13 +194,13 @@ func TestLighthouseService_AssertAccountInfoInstruction(t *testing.T) {
 	//	t.Fatal(err)
 	//}
 	//
-	//sig, err := c.Raw().SendTransactionWithOpts(context.TODO(), txn, rpc.TransactionOpts{SkipPreflight: true})
+	//sig, err := c.SendTransactionWithOpts(context.TODO(), txn, rpc.TransactionOpts{SkipPreflight: true})
 	//if err != nil {
 	//	t.Fatal(err)
 	//}
 	//log.Printf("Sig: %s", sig)
 
-	sim, err := c.Raw().SimulateTransactionWithOpts(context.TODO(), txn, &rpc.SimulateTransactionOpts{
+	sim, err := c.SimulateTransactionWithOpts(context.TODO(), txn, &rpc.SimulateTransactionOpts{
 		SigVerify:  false,
 		Commitment: rpc.CommitmentProcessed,
 	})
@@ -216,13 +219,12 @@ func TestLighthouseService_AssertAccountInfoInstruction(t *testing.T) {
 func NewComputeBudgetSetUnitLimitInstruction(units uint32) solana.Instruction {
 	computeBudget := solana.MustPublicKeyFromBase58("ComputeBudget111111111111111111111111111111")
 
-	buf := new(bytes.Buffer)
-	borshEncoder := bin.NewBorshEncoder(buf)
+	borshEncoder := bin.NewEncoder(nil)
 
-	_ = borshEncoder.Encode(uint8(2)) //2 = Set Compute Unit Limit
-	_ = borshEncoder.WriteUint64(uint64(units), binary.LittleEndian)
+	borshEncoder.WriteUint8(2) //2 = Set Compute Unit Limit
+	borshEncoder.WriteUint32(units)
 
-	inst2 := solana.NewInstruction(computeBudget, solana.AccountMetaSlice{}, buf.Bytes())
+	inst2 := solana.NewInstruction(computeBudget, solana.AccountMetaSlice{}, borshEncoder.Bytes())
 
 	return inst2
 }
@@ -230,13 +232,12 @@ func NewComputeBudgetSetUnitLimitInstruction(units uint32) solana.Instruction {
 func NewComputeBudgetSetUnitPriceInstruction(mLamports uint64) solana.Instruction {
 	computeBudget := solana.MustPublicKeyFromBase58("ComputeBudget111111111111111111111111111111")
 
-	buf := new(bytes.Buffer)
-	borshEncoder := bin.NewBorshEncoder(buf)
+	borshEncoder := bin.NewEncoder(nil)
 
-	_ = borshEncoder.WriteUint8(uint8(3)) //3 = Set Compute Unit Bids
-	_ = borshEncoder.WriteUint64(mLamports, binary.LittleEndian)
+	borshEncoder.WriteUint8(3) //3 = Set Compute Unit Bids
+	borshEncoder.WriteUint64(mLamports)
 
-	inst2 := solana.NewInstruction(computeBudget, solana.AccountMetaSlice{}, buf.Bytes())
+	inst2 := solana.NewInstruction(computeBudget, solana.AccountMetaSlice{}, borshEncoder.Bytes())
 
 	return inst2
 }
