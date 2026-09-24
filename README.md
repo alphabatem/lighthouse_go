@@ -1,6 +1,6 @@
-# [WIP] lighthouse_go
+# lighthouse_go
 
-Uses `github.com/fluxrpc/solana-go` v0.1.9 and requires Go 1.26.4 or newer.
+Uses `github.com/fluxrpc/solana-go` v0.1.10 and requires Go 1.26.4 or newer.
 
 Binary serialization uses `github.com/fluxrpc/solana-go/binary`. Create codecs
 with `binary.NewEncoder(nil)` and `binary.NewDecoder(data)`, then call the
