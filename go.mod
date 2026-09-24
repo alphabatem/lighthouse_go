@@ -4,10 +4,8 @@ go 1.26.4
 
 require (
 	github.com/alphabatem/common v1.2.0
-	github.com/davecgh/go-spew v1.1.1
-	github.com/fluxrpc/solana-go v0.1.9
+	github.com/fluxrpc/solana-go v0.1.10
 	github.com/gagliardetto/gofuzz v1.2.2
-	github.com/gagliardetto/treeout v0.1.4
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.11.1
 )
@@ -17,6 +15,7 @@ require (
 	github.com/bytedance/sonic v1.15.2 // indirect
 	github.com/bytedance/sonic/loader v0.5.2 // indirect
 	github.com/cloudwego/base64x v0.1.7 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fluxrpc/base58 v1.2.0 // indirect
 	github.com/klauspost/compress v1.19.2 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect

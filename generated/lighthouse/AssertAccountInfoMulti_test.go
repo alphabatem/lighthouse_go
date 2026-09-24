@@ -4,9 +4,10 @@ package lighthouse
 
 import (
 	"bytes"
-	ag_require "github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
+
+	ag_require "github.com/stretchr/testify/require"
 )
 
 func TestEncodeDecode_AssertAccountInfoMulti(t *testing.T) {

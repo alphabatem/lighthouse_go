@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"fmt"
-	ag_spew "github.com/davecgh/go-spew/spew"
 	ag_solanago "github.com/fluxrpc/solana-go"
 	ag_binary "github.com/fluxrpc/solana-go/binary"
-	ag_treeout "github.com/gagliardetto/treeout"
 )
 
 var ProgramID ag_solanago.PublicKey = ag_solanago.MustPublicKeyFromBase58("L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95")
@@ -108,14 +106,6 @@ type BaseVariant struct {
 
 type Instruction struct {
 	BaseVariant
-}
-
-func (inst *Instruction) EncodeToTree(parent ag_treeout.Branches) {
-	if enToTree, ok := inst.Impl.(interface{ EncodeToTree(ag_treeout.Branches) }); ok {
-		enToTree.EncodeToTree(parent)
-	} else {
-		parent.Child(ag_spew.Sdump(inst))
-	}
 }
 
 func (inst *Instruction) ProgramID() ag_solanago.PublicKey {

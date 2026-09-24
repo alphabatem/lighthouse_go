@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
 	ag_solanago "github.com/fluxrpc/solana-go"
 	ag_binary "github.com/fluxrpc/solana-go/binary"
-	ag_treeout "github.com/gagliardetto/treeout"
 )
 
 // MemoryWrite is the `MemoryWrite` instruction.
@@ -133,7 +131,7 @@ func (inst *MemoryWrite) GetSourceAccountAccount() *ag_solanago.AccountMeta {
 
 func (inst MemoryWrite) Build() *Instruction {
 	return &Instruction{BaseVariant: BaseVariant{
-		Impl:   inst,
+		Impl:   &inst,
 		TypeID: Instruction_MemoryWrite,
 	}}
 }
@@ -184,34 +182,6 @@ func (inst *MemoryWrite) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (inst *MemoryWrite) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("MemoryWrite")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=4]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param("   MemoryId", *inst.MemoryId))
-						paramsBranch.Child(ag_format.Param(" MemoryBump", *inst.MemoryBump))
-						paramsBranch.Child(ag_format.Param("WriteOffset", *inst.WriteOffset))
-						paramsBranch.Child(ag_format.Param("  WriteType", *inst.WriteType))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=5]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("    programId", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("systemProgram", inst.AccountMetaSlice.Get(1)))
-						accountsBranch.Child(ag_format.Meta("        payer", inst.AccountMetaSlice.Get(2)))
-						accountsBranch.Child(ag_format.Meta("       memory", inst.AccountMetaSlice.Get(3)))
-						accountsBranch.Child(ag_format.Meta("       source", inst.AccountMetaSlice.Get(4)))
-					})
-				})
-		})
 }
 
 func (obj MemoryWrite) MarshalWithEncoder(encoder *ag_binary.Encoder) error {

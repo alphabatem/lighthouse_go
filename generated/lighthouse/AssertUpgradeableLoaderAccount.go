@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
 	ag_solanago "github.com/fluxrpc/solana-go"
 	ag_binary "github.com/fluxrpc/solana-go/binary"
-	ag_treeout "github.com/gagliardetto/treeout"
 )
 
 // AssertUpgradeableLoaderAccount is the `AssertUpgradeableLoaderAccount` instruction.
@@ -55,7 +53,7 @@ func (inst *AssertUpgradeableLoaderAccount) GetTargetAccountAccount() *ag_solana
 
 func (inst AssertUpgradeableLoaderAccount) Build() *Instruction {
 	return &Instruction{BaseVariant: BaseVariant{
-		Impl:   inst,
+		Impl:   &inst,
 		TypeID: Instruction_AssertUpgradeableLoaderAccount,
 	}}
 }
@@ -88,28 +86,6 @@ func (inst *AssertUpgradeableLoaderAccount) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (inst *AssertUpgradeableLoaderAccount) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("AssertUpgradeableLoaderAccount")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param(" LogLevel", *inst.LogLevel))
-						paramsBranch.Child(ag_format.Param("Assertion", *inst.Assertion))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=1]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("target", inst.AccountMetaSlice.Get(0)))
-					})
-				})
-		})
 }
 
 func (obj AssertUpgradeableLoaderAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) error {

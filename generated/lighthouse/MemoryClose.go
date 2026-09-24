@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
 	ag_solanago "github.com/fluxrpc/solana-go"
 	ag_binary "github.com/fluxrpc/solana-go/binary"
-	ag_treeout "github.com/gagliardetto/treeout"
 )
 
 // MemoryClose is the `MemoryClose` instruction.
@@ -87,7 +85,7 @@ func (inst *MemoryClose) GetMemoryAccount() *ag_solanago.AccountMeta {
 
 func (inst MemoryClose) Build() *Instruction {
 	return &Instruction{BaseVariant: BaseVariant{
-		Impl:   inst,
+		Impl:   &inst,
 		TypeID: Instruction_MemoryClose,
 	}}
 }
@@ -126,30 +124,6 @@ func (inst *MemoryClose) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (inst *MemoryClose) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("MemoryClose")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param("  MemoryId", *inst.MemoryId))
-						paramsBranch.Child(ag_format.Param("MemoryBump", *inst.MemoryBump))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=3]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("programId", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("    payer", inst.AccountMetaSlice.Get(1)))
-						accountsBranch.Child(ag_format.Meta("   memory", inst.AccountMetaSlice.Get(2)))
-					})
-				})
-		})
 }
 
 func (obj MemoryClose) MarshalWithEncoder(encoder *ag_binary.Encoder) error {

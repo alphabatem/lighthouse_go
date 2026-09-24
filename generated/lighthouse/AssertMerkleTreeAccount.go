@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_format "github.com/alphabatem/lighthouse_go/internal/format"
 	ag_solanago "github.com/fluxrpc/solana-go"
 	ag_binary "github.com/fluxrpc/solana-go/binary"
-	ag_treeout "github.com/gagliardetto/treeout"
 )
 
 // AssertMerkleTreeAccount is the `AssertMerkleTreeAccount` instruction.
@@ -87,7 +85,7 @@ func (inst *AssertMerkleTreeAccount) GetSplAccountCompressionAccount() *ag_solan
 
 func (inst AssertMerkleTreeAccount) Build() *Instruction {
 	return &Instruction{BaseVariant: BaseVariant{
-		Impl:   inst,
+		Impl:   &inst,
 		TypeID: Instruction_AssertMerkleTreeAccount,
 	}}
 }
@@ -126,30 +124,6 @@ func (inst *AssertMerkleTreeAccount) Validate() error {
 		}
 	}
 	return nil
-}
-
-func (inst *AssertMerkleTreeAccount) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("AssertMerkleTreeAccount")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param(" LogLevel", *inst.LogLevel))
-						paramsBranch.Child(ag_format.Param("Assertion", *inst.Assertion))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=3]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("     targetMerkleTree", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("                 root", inst.AccountMetaSlice.Get(1)))
-						accountsBranch.Child(ag_format.Meta("splAccountCompression", inst.AccountMetaSlice.Get(2)))
-					})
-				})
-		})
 }
 
 func (obj AssertMerkleTreeAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) error {

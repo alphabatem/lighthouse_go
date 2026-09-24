@@ -12,13 +12,15 @@ registry. Golden tests cover byte compatibility for all 18 instruction types.
 
 The service and generated bindings accept Flux public keys and return Flux
 instructions. Use `lighthouse.DecodeInstruction` directly; Flux does not provide
-the previous SDK's global instruction decoder registry. `EncodeToTree` remains
-available with plain-text labels; the previous SDK-specific `TextEncode` method
-has been removed.
+the previous SDK's global instruction decoder registry. `Build()` stores a
+pointer in `Impl`, so built and decoded instructions share the same concrete type
+(for example `*lighthouse.AssertTokenAccount`). The `EncodeToTree` and
+`TextEncode` methods have been removed, along with the `treeout` dependency.
 
 The bindings were adapted from anchor-go output. When regenerating from
 `lighthouse.json`, preserve the Flux imports, explicit binary codecs, instruction
-dispatch, account accessors, and local tree formatting helpers.
+dispatch, account accessors, and pointer `Impl` values in `Build()`; omit
+`EncodeToTree`.
 
 Run `go test ./...` for tests. Live RPC tests require `RPC_URL`; simulation tests
 also require `TEST_KEYPAIR` pointing to a Solana keypair file. These can be set in
