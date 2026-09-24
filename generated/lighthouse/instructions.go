@@ -3,70 +3,59 @@
 package lighthouse
 
 import (
-	"bytes"
 	"fmt"
-	ag_spew "github.com/davecgh/go-spew/spew"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_text "github.com/gagliardetto/solana-go/text"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 var ProgramID ag_solanago.PublicKey = ag_solanago.MustPublicKeyFromBase58("L2TExMFKdjpN9kozasaurPirfHy9P8sbXoAN1qA3S95")
 
 func SetProgramID(pubkey ag_solanago.PublicKey) {
 	ProgramID = pubkey
-	ag_solanago.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
 }
 
 const ProgramName = "Lighthouse"
 
-func init() {
-	if !ProgramID.IsZero() {
-		ag_solanago.RegisterInstructionDecoder(ProgramID, registryDecodeInstruction)
-	}
-}
-
 var (
-	Instruction_MemoryWrite = ag_binary.TypeID(ag_binary.TypeIDFromUint8(0))
+	Instruction_MemoryWrite = uint8(0)
 
-	Instruction_MemoryClose = ag_binary.TypeID(ag_binary.TypeIDFromUint8(1))
+	Instruction_MemoryClose = uint8(1)
 
-	Instruction_AssertAccountData = ag_binary.TypeID(ag_binary.TypeIDFromUint8(2))
+	Instruction_AssertAccountData = uint8(2)
 
-	Instruction_AssertAccountDataMulti = ag_binary.TypeID(ag_binary.TypeIDFromUint8(3))
+	Instruction_AssertAccountDataMulti = uint8(3)
 
-	Instruction_AssertAccountDelta = ag_binary.TypeID(ag_binary.TypeIDFromUint8(4))
+	Instruction_AssertAccountDelta = uint8(4)
 
-	Instruction_AssertAccountInfo = ag_binary.TypeID(ag_binary.TypeIDFromUint8(5))
+	Instruction_AssertAccountInfo = uint8(5)
 
-	Instruction_AssertAccountInfoMulti = ag_binary.TypeID(ag_binary.TypeIDFromUint8(6))
+	Instruction_AssertAccountInfoMulti = uint8(6)
 
-	Instruction_AssertMintAccount = ag_binary.TypeID(ag_binary.TypeIDFromUint8(7))
+	Instruction_AssertMintAccount = uint8(7)
 
-	Instruction_AssertMintAccountMulti = ag_binary.TypeID(ag_binary.TypeIDFromUint8(8))
+	Instruction_AssertMintAccountMulti = uint8(8)
 
-	Instruction_AssertTokenAccount = ag_binary.TypeID(ag_binary.TypeIDFromUint8(9))
+	Instruction_AssertTokenAccount = uint8(9)
 
-	Instruction_AssertTokenAccountMulti = ag_binary.TypeID(ag_binary.TypeIDFromUint8(10))
+	Instruction_AssertTokenAccountMulti = uint8(10)
 
-	Instruction_AssertStakeAccount = ag_binary.TypeID(ag_binary.TypeIDFromUint8(11))
+	Instruction_AssertStakeAccount = uint8(11)
 
-	Instruction_AssertStakeAccountMulti = ag_binary.TypeID(ag_binary.TypeIDFromUint8(12))
+	Instruction_AssertStakeAccountMulti = uint8(12)
 
-	Instruction_AssertUpgradeableLoaderAccount = ag_binary.TypeID(ag_binary.TypeIDFromUint8(13))
+	Instruction_AssertUpgradeableLoaderAccount = uint8(13)
 
-	Instruction_AssertUpgradeableLoaderAccountMulti = ag_binary.TypeID(ag_binary.TypeIDFromUint8(14))
+	Instruction_AssertUpgradeableLoaderAccountMulti = uint8(14)
 
-	Instruction_AssertSysvarClock = ag_binary.TypeID(ag_binary.TypeIDFromUint8(15))
+	Instruction_AssertSysvarClock = uint8(15)
 
-	Instruction_AssertMerkleTreeAccount = ag_binary.TypeID(ag_binary.TypeIDFromUint8(16))
+	Instruction_AssertMerkleTreeAccount = uint8(16)
 
-	Instruction_AssertBubblegumTreeConfigAccount = ag_binary.TypeID(ag_binary.TypeIDFromUint8(17))
+	Instruction_AssertBubblegumTreeConfigAccount = uint8(17)
 )
 
 // InstructionIDToName returns the name of the instruction given its ID.
-func InstructionIDToName(id ag_binary.TypeID) string {
+func InstructionIDToName(id uint8) string {
 	switch id {
 	case Instruction_MemoryWrite:
 		return "MemoryWrite"
@@ -109,124 +98,109 @@ func InstructionIDToName(id ag_binary.TypeID) string {
 	}
 }
 
+// BaseVariant holds the one-byte Lighthouse discriminator and its payload.
+type BaseVariant struct {
+	TypeID uint8
+	Impl   interface{}
+}
+
 type Instruction struct {
-	ag_binary.BaseVariant
+	BaseVariant
 }
-
-func (inst *Instruction) EncodeToTree(parent ag_treeout.Branches) {
-	if enToTree, ok := inst.Impl.(ag_text.EncodableToTree); ok {
-		enToTree.EncodeToTree(parent)
-	} else {
-		parent.Child(ag_spew.Sdump(inst))
-	}
-}
-
-var InstructionImplDef = ag_binary.NewVariantDefinition(
-	ag_binary.AnchorTypeIDEncoding,
-	[]ag_binary.VariantType{
-		{
-			"memory_write", (*MemoryWrite)(nil),
-		},
-		{
-			"memory_close", (*MemoryClose)(nil),
-		},
-		{
-			"assert_account_data", (*AssertAccountData)(nil),
-		},
-		{
-			"assert_account_data_multi", (*AssertAccountDataMulti)(nil),
-		},
-		{
-			"assert_account_delta", (*AssertAccountDelta)(nil),
-		},
-		{
-			"assert_account_info", (*AssertAccountInfo)(nil),
-		},
-		{
-			"assert_account_info_multi", (*AssertAccountInfoMulti)(nil),
-		},
-		{
-			"assert_mint_account", (*AssertMintAccount)(nil),
-		},
-		{
-			"assert_mint_account_multi", (*AssertMintAccountMulti)(nil),
-		},
-		{
-			"assert_token_account", (*AssertTokenAccount)(nil),
-		},
-		{
-			"assert_token_account_multi", (*AssertTokenAccountMulti)(nil),
-		},
-		{
-			"assert_stake_account", (*AssertStakeAccount)(nil),
-		},
-		{
-			"assert_stake_account_multi", (*AssertStakeAccountMulti)(nil),
-		},
-		{
-			"assert_upgradeable_loader_account", (*AssertUpgradeableLoaderAccount)(nil),
-		},
-		{
-			"assert_upgradeable_loader_account_multi", (*AssertUpgradeableLoaderAccountMulti)(nil),
-		},
-		{
-			"assert_sysvar_clock", (*AssertSysvarClock)(nil),
-		},
-		{
-			"assert_merkle_tree_account", (*AssertMerkleTreeAccount)(nil),
-		},
-		{
-			"assert_bubblegum_tree_config_account", (*AssertBubblegumTreeConfigAccount)(nil),
-		},
-	},
-)
 
 func (inst *Instruction) ProgramID() ag_solanago.PublicKey {
 	return ProgramID
 }
 
 func (inst *Instruction) Accounts() (out []*ag_solanago.AccountMeta) {
-	return inst.Impl.(ag_solanago.AccountsGettable).GetAccounts()
+	return inst.Impl.(interface {
+		GetAccounts() []*ag_solanago.AccountMeta
+	}).GetAccounts()
 }
 
 func (inst *Instruction) Data() ([]byte, error) {
-	buf := new(bytes.Buffer)
-	if err := ag_binary.NewBorshEncoder(buf).Encode(inst); err != nil {
-		return nil, fmt.Errorf("unable to encode instruction: %w", err)
+	encoder := ag_binary.NewEncoder(nil)
+	if err := inst.MarshalWithEncoder(encoder); err != nil {
+		return nil, err
 	}
-	return buf.Bytes(), nil
-}
-
-func (inst *Instruction) TextEncode(encoder *ag_text.Encoder, option *ag_text.Option) error {
-	return encoder.Encode(inst.Impl, option)
+	return encoder.Bytes(), encoder.Err()
 }
 
 func (inst *Instruction) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
-	return inst.BaseVariant.UnmarshalBinaryVariant(decoder, InstructionImplDef)
+	inst.Impl = nil
+	inst.TypeID = decoder.ReadUint8()
+	if err := decoder.Err(); err != nil {
+		return err
+	}
+	var value interface {
+		UnmarshalWithDecoder(*ag_binary.Decoder) error
+	}
+	switch inst.TypeID {
+	case Instruction_MemoryWrite:
+		value = new(MemoryWrite)
+	case Instruction_MemoryClose:
+		value = new(MemoryClose)
+	case Instruction_AssertAccountData:
+		value = new(AssertAccountData)
+	case Instruction_AssertAccountDataMulti:
+		value = new(AssertAccountDataMulti)
+	case Instruction_AssertAccountDelta:
+		value = new(AssertAccountDelta)
+	case Instruction_AssertAccountInfo:
+		value = new(AssertAccountInfo)
+	case Instruction_AssertAccountInfoMulti:
+		value = new(AssertAccountInfoMulti)
+	case Instruction_AssertMintAccount:
+		value = new(AssertMintAccount)
+	case Instruction_AssertMintAccountMulti:
+		value = new(AssertMintAccountMulti)
+	case Instruction_AssertTokenAccount:
+		value = new(AssertTokenAccount)
+	case Instruction_AssertTokenAccountMulti:
+		value = new(AssertTokenAccountMulti)
+	case Instruction_AssertStakeAccount:
+		value = new(AssertStakeAccount)
+	case Instruction_AssertStakeAccountMulti:
+		value = new(AssertStakeAccountMulti)
+	case Instruction_AssertUpgradeableLoaderAccount:
+		value = new(AssertUpgradeableLoaderAccount)
+	case Instruction_AssertUpgradeableLoaderAccountMulti:
+		value = new(AssertUpgradeableLoaderAccountMulti)
+	case Instruction_AssertSysvarClock:
+		value = new(AssertSysvarClock)
+	case Instruction_AssertMerkleTreeAccount:
+		value = new(AssertMerkleTreeAccount)
+	case Instruction_AssertBubblegumTreeConfigAccount:
+		value = new(AssertBubblegumTreeConfigAccount)
+	default:
+		return fmt.Errorf("unknown instruction ID %d", inst.TypeID)
+	}
+	if err := value.UnmarshalWithDecoder(decoder); err != nil {
+		return err
+	}
+	inst.Impl = value
+	return decoder.Err()
 }
 
 func (inst *Instruction) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
-	err := encoder.WriteUint8(inst.TypeID.Uint8())
-	if err != nil {
-		return fmt.Errorf("unable to write variant type: %w", err)
+	value, ok := inst.Impl.(interface {
+		MarshalWithEncoder(*ag_binary.Encoder) error
+	})
+	if !ok {
+		return fmt.Errorf("instruction %d has no encoder", inst.TypeID)
 	}
-	return encoder.Encode(inst.Impl)
-}
-
-func registryDecodeInstruction(accounts []*ag_solanago.AccountMeta, data []byte) (interface{}, error) {
-	inst, err := DecodeInstruction(accounts, data)
-	if err != nil {
-		return nil, err
-	}
-	return inst, nil
+	encoder.WriteUint8(inst.TypeID)
+	return value.MarshalWithEncoder(encoder)
 }
 
 func DecodeInstruction(accounts []*ag_solanago.AccountMeta, data []byte) (*Instruction, error) {
 	inst := new(Instruction)
-	if err := ag_binary.NewBorshDecoder(data).Decode(inst); err != nil {
+	if err := inst.UnmarshalWithDecoder(ag_binary.NewDecoder(data)); err != nil {
 		return nil, fmt.Errorf("unable to decode instruction: %w", err)
 	}
-	if v, ok := inst.Impl.(ag_solanago.AccountsSettable); ok {
+	if v, ok := inst.Impl.(interface {
+		SetAccounts([]*ag_solanago.AccountMeta) error
+	}); ok {
 		err := v.SetAccounts(accounts)
 		if err != nil {
 			return nil, fmt.Errorf("unable to set accounts for instruction: %w", err)

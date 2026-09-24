@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 // AssertAccountInfoMulti is the `AssertAccountInfoMulti` instruction.
@@ -43,7 +41,7 @@ func (inst *AssertAccountInfoMulti) SetAssertions(assertions AccountInfoAssertio
 // SetTargetAccountAccount sets the "targetAccount" account.
 // Target account to be asserted
 func (inst *AssertAccountInfoMulti) SetTargetAccountAccount(targetAccount ag_solanago.PublicKey) *AssertAccountInfoMulti {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(targetAccount)
+	inst.AccountMetaSlice[0] = targetAccount.Meta()
 	return inst
 }
 
@@ -54,8 +52,8 @@ func (inst *AssertAccountInfoMulti) GetTargetAccountAccount() *ag_solanago.Accou
 }
 
 func (inst AssertAccountInfoMulti) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
-		Impl:   inst,
+	return &Instruction{BaseVariant: BaseVariant{
+		Impl:   &inst,
 		TypeID: Instruction_AssertAccountInfoMulti,
 	}}
 }
@@ -90,76 +88,23 @@ func (inst *AssertAccountInfoMulti) Validate() error {
 	return nil
 }
 
-func (inst *AssertAccountInfoMulti) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("AssertAccountInfoMulti")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param("  LogLevel", *inst.LogLevel))
-						paramsBranch.Child(ag_format.Param("Assertions", inst.Assertions))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=1]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("target", inst.AccountMetaSlice.Get(0)))
-					})
-				})
-		})
+func (obj AssertAccountInfoMulti) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if err := obj.Assertions.MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	return encoder.Err()
 }
-
-func (obj AssertAccountInfoMulti) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `LogLevel` param:
-	err = encoder.Encode(obj.LogLevel)
-	if err != nil {
+func (obj *AssertAccountInfoMulti) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	if err := obj.Assertions.UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-
-	err = encoder.WriteUint8(uint8(len(obj.Assertions)))
-	if err != nil {
-		return err
-	}
-
-	// Serialize `Assertions` param:
-	for _, at := range obj.Assertions {
-		err := at.MarshalWithEncoder(encoder)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-func (obj *AssertAccountInfoMulti) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	{
-		_, _ = decoder.ReadUint8()
-	}
-
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
-		return err
-	}
-
-	assertCount, err := decoder.ReadUint8()
-	if err != nil {
-		return err
-	}
-
-	// Deserialize `Assertions`:
-	for i := uint8(0); i < assertCount; i++ {
-		var assert AccountInfoAssertion
-
-		if err := assert.UnmarshalWithDecoder(decoder); err != nil {
-			return err
-		}
-		obj.Assertions = append(obj.Assertions, &assert)
-	}
-
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertAccountInfoMultiInstruction declares a new AssertAccountInfoMulti instruction with the provided parameters and accounts.
@@ -173,4 +118,13 @@ func NewAssertAccountInfoMultiInstruction(
 		SetLogLevel(logLevel).
 		SetAssertions(assertions).
 		SetTargetAccountAccount(targetAccount)
+}
+
+func (inst AssertAccountInfoMulti) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertAccountInfoMulti) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

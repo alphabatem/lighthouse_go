@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 // AssertMerkleTreeAccount is the `AssertMerkleTreeAccount` instruction.
@@ -49,7 +47,7 @@ func (inst *AssertMerkleTreeAccount) SetAssertion(assertion MerkleTreeAssertion)
 // SetTargetMerkleTreeAccount sets the "targetMerkleTree" account.
 // Target merkle tree account to be asserted
 func (inst *AssertMerkleTreeAccount) SetTargetMerkleTreeAccount(targetMerkleTree ag_solanago.PublicKey) *AssertMerkleTreeAccount {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(targetMerkleTree)
+	inst.AccountMetaSlice[0] = targetMerkleTree.Meta()
 	return inst
 }
 
@@ -62,7 +60,7 @@ func (inst *AssertMerkleTreeAccount) GetTargetMerkleTreeAccount() *ag_solanago.A
 // SetRootAccount sets the "root" account.
 // The current root of the merkle tree
 func (inst *AssertMerkleTreeAccount) SetRootAccount(root ag_solanago.PublicKey) *AssertMerkleTreeAccount {
-	inst.AccountMetaSlice[1] = ag_solanago.Meta(root)
+	inst.AccountMetaSlice[1] = root.Meta()
 	return inst
 }
 
@@ -75,7 +73,7 @@ func (inst *AssertMerkleTreeAccount) GetRootAccount() *ag_solanago.AccountMeta {
 // SetSplAccountCompressionAccount sets the "splAccountCompression" account.
 // SPL account compression program
 func (inst *AssertMerkleTreeAccount) SetSplAccountCompressionAccount(splAccountCompression ag_solanago.PublicKey) *AssertMerkleTreeAccount {
-	inst.AccountMetaSlice[2] = ag_solanago.Meta(splAccountCompression)
+	inst.AccountMetaSlice[2] = splAccountCompression.Meta()
 	return inst
 }
 
@@ -86,8 +84,8 @@ func (inst *AssertMerkleTreeAccount) GetSplAccountCompressionAccount() *ag_solan
 }
 
 func (inst AssertMerkleTreeAccount) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
-		Impl:   inst,
+	return &Instruction{BaseVariant: BaseVariant{
+		Impl:   &inst,
 		TypeID: Instruction_AssertMerkleTreeAccount,
 	}}
 }
@@ -128,55 +126,27 @@ func (inst *AssertMerkleTreeAccount) Validate() error {
 	return nil
 }
 
-func (inst *AssertMerkleTreeAccount) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("AssertMerkleTreeAccount")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param(" LogLevel", *inst.LogLevel))
-						paramsBranch.Child(ag_format.Param("Assertion", *inst.Assertion))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=3]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("     targetMerkleTree", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("                 root", inst.AccountMetaSlice.Get(1)))
-						accountsBranch.Child(ag_format.Meta("splAccountCompression", inst.AccountMetaSlice.Get(2)))
-					})
-				})
-		})
+func (obj AssertMerkleTreeAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if obj.Assertion == nil {
+		return errors.New("Assertion parameter is not set")
+	}
+	if err := (*obj.Assertion).MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	return encoder.Err()
 }
-
-func (obj AssertMerkleTreeAccount) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `LogLevel` param:
-	err = encoder.Encode(obj.LogLevel)
-	if err != nil {
+func (obj *AssertMerkleTreeAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	obj.Assertion = new(MerkleTreeAssertion)
+	if err := (*obj.Assertion).UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-	// Serialize `Assertion` param:
-	err = encoder.Encode(obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (obj *AssertMerkleTreeAccount) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
-		return err
-	}
-	// Deserialize `Assertion`:
-	err = decoder.Decode(&obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertMerkleTreeAccountInstruction declares a new AssertMerkleTreeAccount instruction with the provided parameters and accounts.
@@ -194,4 +164,13 @@ func NewAssertMerkleTreeAccountInstruction(
 		SetTargetMerkleTreeAccount(targetMerkleTree).
 		SetRootAccount(root).
 		SetSplAccountCompressionAccount(splAccountCompression)
+}
+
+func (inst AssertMerkleTreeAccount) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertMerkleTreeAccount) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 // AssertMintAccountMulti is the `AssertMintAccountMulti` instruction.
@@ -43,7 +41,7 @@ func (inst *AssertMintAccountMulti) SetAssertions(assertions MintAccountAssertio
 // SetTargetAccountAccount sets the "targetAccount" account.
 // Target account to be asserted
 func (inst *AssertMintAccountMulti) SetTargetAccountAccount(targetAccount ag_solanago.PublicKey) *AssertMintAccountMulti {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(targetAccount)
+	inst.AccountMetaSlice[0] = targetAccount.Meta()
 	return inst
 }
 
@@ -54,8 +52,8 @@ func (inst *AssertMintAccountMulti) GetTargetAccountAccount() *ag_solanago.Accou
 }
 
 func (inst AssertMintAccountMulti) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
-		Impl:   inst,
+	return &Instruction{BaseVariant: BaseVariant{
+		Impl:   &inst,
 		TypeID: Instruction_AssertMintAccountMulti,
 	}}
 }
@@ -90,53 +88,27 @@ func (inst *AssertMintAccountMulti) Validate() error {
 	return nil
 }
 
-func (inst *AssertMintAccountMulti) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("AssertMintAccountMulti")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param("  LogLevel", *inst.LogLevel))
-						paramsBranch.Child(ag_format.Param("Assertions", *inst.Assertions))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=1]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("target", inst.AccountMetaSlice.Get(0)))
-					})
-				})
-		})
+func (obj AssertMintAccountMulti) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if obj.Assertions == nil {
+		return errors.New("Assertions parameter is not set")
+	}
+	if err := (*obj.Assertions).MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	return encoder.Err()
 }
-
-func (obj AssertMintAccountMulti) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `LogLevel` param:
-	err = encoder.Encode(obj.LogLevel)
-	if err != nil {
+func (obj *AssertMintAccountMulti) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	obj.Assertions = new(MintAccountAssertions)
+	if err := (*obj.Assertions).UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-	// Serialize `Assertions` param:
-	err = encoder.Encode(obj.Assertions)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (obj *AssertMintAccountMulti) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
-		return err
-	}
-	// Deserialize `Assertions`:
-	err = decoder.Decode(&obj.Assertions)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertMintAccountMultiInstruction declares a new AssertMintAccountMulti instruction with the provided parameters and accounts.
@@ -150,4 +122,13 @@ func NewAssertMintAccountMultiInstruction(
 		SetLogLevel(logLevel).
 		SetAssertions(assertions).
 		SetTargetAccountAccount(targetAccount)
+}
+
+func (inst AssertMintAccountMulti) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertMintAccountMulti) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

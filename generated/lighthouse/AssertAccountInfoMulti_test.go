@@ -4,14 +4,14 @@ package lighthouse
 
 import (
 	"bytes"
-	ag_gofuzz "github.com/gagliardetto/gofuzz"
-	ag_require "github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
+
+	ag_require "github.com/stretchr/testify/require"
 )
 
 func TestEncodeDecode_AssertAccountInfoMulti(t *testing.T) {
-	fu := ag_gofuzz.New().NilChance(0)
+	fu := assertionFuzzer()
 	for i := 0; i < 1; i++ {
 		t.Run("AssertAccountInfoMulti"+strconv.Itoa(i), func(t *testing.T) {
 			{

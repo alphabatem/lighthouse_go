@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 // AssertAccountDelta is the `AssertAccountDelta` instruction.
@@ -46,7 +44,7 @@ func (inst *AssertAccountDelta) SetAssertion(assertion AccountDeltaAssertion) *A
 // SetAccountAAccount sets the "accountA" account.
 // Account A where the delta is calculated from
 func (inst *AssertAccountDelta) SetAccountAAccount(accountA ag_solanago.PublicKey) *AssertAccountDelta {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(accountA)
+	inst.AccountMetaSlice[0] = accountA.Meta()
 	return inst
 }
 
@@ -59,7 +57,7 @@ func (inst *AssertAccountDelta) GetAccountAAccount() *ag_solanago.AccountMeta {
 // SetAccountBAccount sets the "accountB" account.
 // Account B where the delta is calculated to
 func (inst *AssertAccountDelta) SetAccountBAccount(accountB ag_solanago.PublicKey) *AssertAccountDelta {
-	inst.AccountMetaSlice[1] = ag_solanago.Meta(accountB)
+	inst.AccountMetaSlice[1] = accountB.Meta()
 	return inst
 }
 
@@ -70,8 +68,8 @@ func (inst *AssertAccountDelta) GetAccountBAccount() *ag_solanago.AccountMeta {
 }
 
 func (inst AssertAccountDelta) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
-		Impl:   inst,
+	return &Instruction{BaseVariant: BaseVariant{
+		Impl:   &inst,
 		TypeID: Instruction_AssertAccountDelta,
 	}}
 }
@@ -109,54 +107,27 @@ func (inst *AssertAccountDelta) Validate() error {
 	return nil
 }
 
-func (inst *AssertAccountDelta) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("AssertAccountDelta")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param(" LogLevel", *inst.LogLevel))
-						paramsBranch.Child(ag_format.Param("Assertion", *inst.Assertion))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=2]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("accountA", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("accountB", inst.AccountMetaSlice.Get(1)))
-					})
-				})
-		})
+func (obj AssertAccountDelta) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.LogLevel == nil {
+		return errors.New("LogLevel parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.LogLevel)))
+	if obj.Assertion == nil {
+		return errors.New("Assertion parameter is not set")
+	}
+	if err := (*obj.Assertion).MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	return encoder.Err()
 }
-
-func (obj AssertAccountDelta) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `LogLevel` param:
-	err = encoder.Encode(obj.LogLevel)
-	if err != nil {
+func (obj *AssertAccountDelta) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.LogLevel = new(LogLevel)
+	(*obj.LogLevel) = LogLevel(decoder.ReadUint8())
+	obj.Assertion = new(AccountDeltaAssertion)
+	if err := (*obj.Assertion).UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-	// Serialize `Assertion` param:
-	err = encoder.Encode(obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (obj *AssertAccountDelta) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `LogLevel`:
-	err = decoder.Decode(&obj.LogLevel)
-	if err != nil {
-		return err
-	}
-	// Deserialize `Assertion`:
-	err = decoder.Decode(&obj.Assertion)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Err()
 }
 
 // NewAssertAccountDeltaInstruction declares a new AssertAccountDelta instruction with the provided parameters and accounts.
@@ -172,4 +143,13 @@ func NewAssertAccountDeltaInstruction(
 		SetAssertion(assertion).
 		SetAccountAAccount(accountA).
 		SetAccountBAccount(accountB)
+}
+
+func (inst AssertAccountDelta) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *AssertAccountDelta) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 // MemoryClose is the `MemoryClose` instruction.
@@ -49,7 +47,7 @@ func (inst *MemoryClose) SetMemoryBump(memoryBump uint8) *MemoryClose {
 // SetProgramIdAccount sets the "programId" account.
 // Lighthouse program
 func (inst *MemoryClose) SetProgramIdAccount(programId ag_solanago.PublicKey) *MemoryClose {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(programId)
+	inst.AccountMetaSlice[0] = programId.Meta()
 	return inst
 }
 
@@ -62,7 +60,7 @@ func (inst *MemoryClose) GetProgramIdAccount() *ag_solanago.AccountMeta {
 // SetPayerAccount sets the "payer" account.
 // Payer account
 func (inst *MemoryClose) SetPayerAccount(payer ag_solanago.PublicKey) *MemoryClose {
-	inst.AccountMetaSlice[1] = ag_solanago.Meta(payer).WRITE().SIGNER()
+	inst.AccountMetaSlice[1] = payer.Meta().WRITE().SIGNER()
 	return inst
 }
 
@@ -75,7 +73,7 @@ func (inst *MemoryClose) GetPayerAccount() *ag_solanago.AccountMeta {
 // SetMemoryAccount sets the "memory" account.
 // Memory account
 func (inst *MemoryClose) SetMemoryAccount(memory ag_solanago.PublicKey) *MemoryClose {
-	inst.AccountMetaSlice[2] = ag_solanago.Meta(memory).WRITE()
+	inst.AccountMetaSlice[2] = memory.Meta().WRITE()
 	return inst
 }
 
@@ -86,8 +84,8 @@ func (inst *MemoryClose) GetMemoryAccount() *ag_solanago.AccountMeta {
 }
 
 func (inst MemoryClose) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
-		Impl:   inst,
+	return &Instruction{BaseVariant: BaseVariant{
+		Impl:   &inst,
 		TypeID: Instruction_MemoryClose,
 	}}
 }
@@ -128,55 +126,23 @@ func (inst *MemoryClose) Validate() error {
 	return nil
 }
 
-func (inst *MemoryClose) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("MemoryClose")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=2]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param("  MemoryId", *inst.MemoryId))
-						paramsBranch.Child(ag_format.Param("MemoryBump", *inst.MemoryBump))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=3]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("programId", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("    payer", inst.AccountMetaSlice.Get(1)))
-						accountsBranch.Child(ag_format.Meta("   memory", inst.AccountMetaSlice.Get(2)))
-					})
-				})
-		})
+func (obj MemoryClose) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.MemoryId == nil {
+		return errors.New("MemoryId parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.MemoryId)))
+	if obj.MemoryBump == nil {
+		return errors.New("MemoryBump parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.MemoryBump)))
+	return encoder.Err()
 }
-
-func (obj MemoryClose) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `MemoryId` param:
-	err = encoder.Encode(obj.MemoryId)
-	if err != nil {
-		return err
-	}
-	// Serialize `MemoryBump` param:
-	err = encoder.Encode(obj.MemoryBump)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (obj *MemoryClose) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `MemoryId`:
-	err = decoder.Decode(&obj.MemoryId)
-	if err != nil {
-		return err
-	}
-	// Deserialize `MemoryBump`:
-	err = decoder.Decode(&obj.MemoryBump)
-	if err != nil {
-		return err
-	}
-	return nil
+func (obj *MemoryClose) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.MemoryId = new(uint8)
+	(*obj.MemoryId) = uint8(decoder.ReadUint8())
+	obj.MemoryBump = new(uint8)
+	(*obj.MemoryBump) = uint8(decoder.ReadUint8())
+	return decoder.Err()
 }
 
 // NewMemoryCloseInstruction declares a new MemoryClose instruction with the provided parameters and accounts.
@@ -194,4 +160,13 @@ func NewMemoryCloseInstruction(
 		SetProgramIdAccount(programId).
 		SetPayerAccount(payer).
 		SetMemoryAccount(memory)
+}
+
+func (inst MemoryClose) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *MemoryClose) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

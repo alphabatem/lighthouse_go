@@ -4,10 +4,8 @@ package lighthouse
 
 import (
 	"errors"
-	ag_binary "github.com/gagliardetto/binary"
-	ag_solanago "github.com/gagliardetto/solana-go"
-	ag_format "github.com/gagliardetto/solana-go/text/format"
-	ag_treeout "github.com/gagliardetto/treeout"
+	ag_solanago "github.com/fluxrpc/solana-go"
+	ag_binary "github.com/fluxrpc/solana-go/binary"
 )
 
 // MemoryWrite is the `MemoryWrite` instruction.
@@ -69,7 +67,7 @@ func (inst *MemoryWrite) SetWriteType(writeType WriteType) *MemoryWrite {
 // SetProgramIdAccount sets the "programId" account.
 // Lighthouse program
 func (inst *MemoryWrite) SetProgramIdAccount(programId ag_solanago.PublicKey) *MemoryWrite {
-	inst.AccountMetaSlice[0] = ag_solanago.Meta(programId)
+	inst.AccountMetaSlice[0] = programId.Meta()
 	return inst
 }
 
@@ -82,7 +80,7 @@ func (inst *MemoryWrite) GetProgramIdAccount() *ag_solanago.AccountMeta {
 // SetSystemProgramAccount sets the "systemProgram" account.
 // System program
 func (inst *MemoryWrite) SetSystemProgramAccount(systemProgram ag_solanago.PublicKey) *MemoryWrite {
-	inst.AccountMetaSlice[1] = ag_solanago.Meta(systemProgram)
+	inst.AccountMetaSlice[1] = systemProgram.Meta()
 	return inst
 }
 
@@ -95,7 +93,7 @@ func (inst *MemoryWrite) GetSystemProgramAccount() *ag_solanago.AccountMeta {
 // SetPayerAccount sets the "payer" account.
 // Payer account
 func (inst *MemoryWrite) SetPayerAccount(payer ag_solanago.PublicKey) *MemoryWrite {
-	inst.AccountMetaSlice[2] = ag_solanago.Meta(payer).WRITE().SIGNER()
+	inst.AccountMetaSlice[2] = payer.Meta().WRITE().SIGNER()
 	return inst
 }
 
@@ -108,7 +106,7 @@ func (inst *MemoryWrite) GetPayerAccount() *ag_solanago.AccountMeta {
 // SetMemoryAccount sets the "memory" account.
 // Memory account
 func (inst *MemoryWrite) SetMemoryAccount(memory ag_solanago.PublicKey) *MemoryWrite {
-	inst.AccountMetaSlice[3] = ag_solanago.Meta(memory).WRITE()
+	inst.AccountMetaSlice[3] = memory.Meta().WRITE()
 	return inst
 }
 
@@ -121,7 +119,7 @@ func (inst *MemoryWrite) GetMemoryAccount() *ag_solanago.AccountMeta {
 // SetSourceAccountAccount sets the "sourceAccount" account.
 // Account to be written to memory
 func (inst *MemoryWrite) SetSourceAccountAccount(sourceAccount ag_solanago.PublicKey) *MemoryWrite {
-	inst.AccountMetaSlice[4] = ag_solanago.Meta(sourceAccount)
+	inst.AccountMetaSlice[4] = sourceAccount.Meta()
 	return inst
 }
 
@@ -132,8 +130,8 @@ func (inst *MemoryWrite) GetSourceAccountAccount() *ag_solanago.AccountMeta {
 }
 
 func (inst MemoryWrite) Build() *Instruction {
-	return &Instruction{BaseVariant: ag_binary.BaseVariant{
-		Impl:   inst,
+	return &Instruction{BaseVariant: BaseVariant{
+		Impl:   &inst,
 		TypeID: Instruction_MemoryWrite,
 	}}
 }
@@ -186,79 +184,39 @@ func (inst *MemoryWrite) Validate() error {
 	return nil
 }
 
-func (inst *MemoryWrite) EncodeToTree(parent ag_treeout.Branches) {
-	parent.Child(ag_format.Program(ProgramName, ProgramID)).
-		//
-		ParentFunc(func(programBranch ag_treeout.Branches) {
-			programBranch.Child(ag_format.Instruction("MemoryWrite")).
-				//
-				ParentFunc(func(instructionBranch ag_treeout.Branches) {
-
-					// Parameters of the instruction:
-					instructionBranch.Child("Params[len=4]").ParentFunc(func(paramsBranch ag_treeout.Branches) {
-						paramsBranch.Child(ag_format.Param("   MemoryId", *inst.MemoryId))
-						paramsBranch.Child(ag_format.Param(" MemoryBump", *inst.MemoryBump))
-						paramsBranch.Child(ag_format.Param("WriteOffset", *inst.WriteOffset))
-						paramsBranch.Child(ag_format.Param("  WriteType", *inst.WriteType))
-					})
-
-					// Accounts of the instruction:
-					instructionBranch.Child("Accounts[len=5]").ParentFunc(func(accountsBranch ag_treeout.Branches) {
-						accountsBranch.Child(ag_format.Meta("    programId", inst.AccountMetaSlice.Get(0)))
-						accountsBranch.Child(ag_format.Meta("systemProgram", inst.AccountMetaSlice.Get(1)))
-						accountsBranch.Child(ag_format.Meta("        payer", inst.AccountMetaSlice.Get(2)))
-						accountsBranch.Child(ag_format.Meta("       memory", inst.AccountMetaSlice.Get(3)))
-						accountsBranch.Child(ag_format.Meta("       source", inst.AccountMetaSlice.Get(4)))
-					})
-				})
-		})
+func (obj MemoryWrite) MarshalWithEncoder(encoder *ag_binary.Encoder) error {
+	if obj.MemoryId == nil {
+		return errors.New("MemoryId parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.MemoryId)))
+	if obj.MemoryBump == nil {
+		return errors.New("MemoryBump parameter is not set")
+	}
+	encoder.WriteUint8(uint8((*obj.MemoryBump)))
+	if obj.WriteOffset == nil {
+		return errors.New("WriteOffset parameter is not set")
+	}
+	encoder.WriteUint64(uint64((*obj.WriteOffset)))
+	if obj.WriteType == nil {
+		return errors.New("WriteType parameter is not set")
+	}
+	if err := (*obj.WriteType).MarshalWithEncoder(encoder); err != nil {
+		return err
+	}
+	return encoder.Err()
 }
-
-func (obj MemoryWrite) MarshalWithEncoder(encoder *ag_binary.Encoder) (err error) {
-	// Serialize `MemoryId` param:
-	err = encoder.Encode(obj.MemoryId)
-	if err != nil {
+func (obj *MemoryWrite) UnmarshalWithDecoder(decoder *ag_binary.Decoder) error {
+	obj.MemoryId = new(uint8)
+	(*obj.MemoryId) = uint8(decoder.ReadUint8())
+	obj.MemoryBump = new(uint8)
+	(*obj.MemoryBump) = uint8(decoder.ReadUint8())
+	obj.WriteOffset = new(CompactU64)
+	(*obj.WriteOffset) = CompactU64(decoder.ReadUint64())
+	obj.WriteType = new(WriteType)
+	if err := (*obj.WriteType).UnmarshalWithDecoder(decoder); err != nil {
 		return err
 	}
-	// Serialize `MemoryBump` param:
-	err = encoder.Encode(obj.MemoryBump)
-	if err != nil {
-		return err
-	}
-	// Serialize `WriteOffset` param:
-	err = encoder.Encode(obj.WriteOffset)
-	if err != nil {
-		return err
-	}
-	// Serialize `WriteType` param:
-	err = encoder.Encode(obj.WriteType)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (obj *MemoryWrite) UnmarshalWithDecoder(decoder *ag_binary.Decoder) (err error) {
-	// Deserialize `MemoryId`:
-	err = decoder.Decode(&obj.MemoryId)
-	if err != nil {
-		return err
-	}
-	// Deserialize `MemoryBump`:
-	err = decoder.Decode(&obj.MemoryBump)
-	if err != nil {
-		return err
-	}
-	// Deserialize `WriteOffset`:
-	err = decoder.Decode(&obj.WriteOffset)
-	if err != nil {
-		return err
-	}
-	// Deserialize `WriteType`:
-	err = decoder.Decode(&obj.WriteType)
-	if err != nil {
-		return err
-	}
-	return nil
+	return decoder.Err()
 }
 
 // NewMemoryWriteInstruction declares a new MemoryWrite instruction with the provided parameters and accounts.
@@ -284,4 +242,13 @@ func NewMemoryWriteInstruction(
 		SetPayerAccount(payer).
 		SetMemoryAccount(memory).
 		SetSourceAccountAccount(sourceAccount)
+}
+
+func (inst MemoryWrite) GetAccounts() []*ag_solanago.AccountMeta {
+	return inst.AccountMetaSlice
+}
+
+func (inst *MemoryWrite) SetAccounts(accounts []*ag_solanago.AccountMeta) error {
+	inst.AccountMetaSlice = accounts
+	return nil
 }

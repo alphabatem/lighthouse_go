@@ -3,7 +3,7 @@ package lighthouse_go
 import (
 	"github.com/alphabatem/common/context"
 	"github.com/alphabatem/lighthouse_go/generated/lighthouse"
-	"github.com/gagliardetto/solana-go"
+	solana "github.com/fluxrpc/solana-go"
 )
 
 type LighthouseService struct {
